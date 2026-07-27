@@ -122,13 +122,29 @@ impl TranscriptsRepository {
 
     /// Helper function to extract a snippet of text around the first match of a query.
     fn get_match_context(transcript: &str, query: &str) -> String {
-        let transcript_lower = transcript.to_lowercase();
-        let query_lower = query.to_lowercase();
+        if query.is_empty() {
+            return transcript.chars().take(200).collect();
+        }
 
-        match transcript_lower.find(&query_lower) {
+        // SQLite 的 LOWER 默认只处理 ASCII。这里保持相同语义，同时确保索引
+        // 与原字符串的 UTF-8 字节位置一致，避免中文或表情符号被从中间截断。
+        let searchable_transcript = transcript.to_ascii_lowercase();
+        let searchable_query = query.to_ascii_lowercase();
+
+        match searchable_transcript.find(&searchable_query) {
             Some(match_index) => {
-                let start_index = match_index.saturating_sub(100);
-                let end_index = (match_index + query.len() + 100).min(transcript.len());
+                let match_end = match_index + query.len();
+                let start_index = transcript[..match_index]
+                    .char_indices()
+                    .rev()
+                    .nth(99)
+                    .map(|(index, _)| index)
+                    .unwrap_or(0);
+                let end_index = transcript[match_end..]
+                    .char_indices()
+                    .nth(100)
+                    .map(|(index, _)| match_end + index)
+                    .unwrap_or(transcript.len());
 
                 let mut context = String::new();
                 if start_index > 0 {
@@ -142,5 +158,44 @@ impl TranscriptsRepository {
             }
             None => transcript.chars().take(200).collect(), // Fallback to the start of the transcript
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::TranscriptsRepository;
+
+    #[test]
+    fn 中文搜索不会截断_utf8() {
+        let transcript = format!("{}重点结论{}", "前".repeat(150), "后".repeat(150));
+        let context = TranscriptsRepository::get_match_context(&transcript, "重点结论");
+
+        assert!(context.contains("重点结论"));
+        assert!(context.starts_with("..."));
+        assert!(context.ends_with("..."));
+    }
+
+    #[test]
+    fn 中英混合搜索忽略英文大小写() {
+        let context =
+            TranscriptsRepository::get_match_context("今天讨论 Project Alpha 的下一步", "project alpha");
+
+        assert!(context.contains("Project Alpha"));
+    }
+
+    #[test]
+    fn 表情符号附近搜索不会崩溃() {
+        let transcript = format!("{}😀行动项{}", "会".repeat(120), "议".repeat(120));
+        let context = TranscriptsRepository::get_match_context(&transcript, "行动项");
+
+        assert!(context.contains("😀行动项"));
+    }
+
+    #[test]
+    fn 未匹配时最多返回二百个字符() {
+        let transcript = "长".repeat(250);
+        let context = TranscriptsRepository::get_match_context(&transcript, "不存在");
+
+        assert_eq!(context.chars().count(), 200);
     }
 }

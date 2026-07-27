@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Sparkles, Cpu } from 'lucide-react';
+import { Lock, Mic, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -10,22 +10,22 @@ export function WelcomeStep() {
   const features = [
     {
       icon: Lock,
-      title: 'Your data never leaves your device',
+      title: '录音与转写保存在本机',
     },
     {
-      icon: Sparkles,
-      title: 'Intelligent summaries & insights',
+      icon: Mic,
+      title: '同时采集麦克风和系统声音',
     },
     {
       icon: Cpu,
-      title: 'Works offline, no cloud required',
+      title: '使用本地 Whisper 进行中文转写',
     },
   ];
 
   return (
     <OnboardingContainer
-      title="Welcome to Meetily"
-      description="Record. Transcribe. Summarize. All on your device."
+      title="欢迎使用会议录音"
+      description="录音与转写，本机完成。"
       step={1}
       hideProgress={true}
     >
@@ -56,9 +56,9 @@ export function WelcomeStep() {
             onClick={goNext}
             className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white"
           >
-            Get Started
+            开始设置
           </Button>
-          <p className="text-xs text-center text-gray-500">Takes less than 3 minutes</p>
+          <p className="text-xs text-center text-gray-500">大约需要 1 分钟</p>
         </div>
       </div>
     </OnboardingContainer>

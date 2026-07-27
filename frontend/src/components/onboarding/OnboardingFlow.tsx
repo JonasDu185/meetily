@@ -3,7 +3,6 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import {
   WelcomeStep,
   PermissionsStep,
-  DownloadProgressStep,
   SetupOverviewStep,
 } from './steps';
 
@@ -31,18 +30,16 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     checkPlatform();
   }, []);
 
-  // 4-Step Onboarding Flow (System-Recommended Models):
-  // Step 1: Welcome - Introduce Meetily features
-  // Step 2: Setup Overview - Database initialization + show recommended downloads
-  // Step 3: Download Progress - Download Parakeet + Summary Model (auto-selected based on platform/RAM)
-  // Step 4: Permissions - Request mic + system audio (macOS only)
+  // 当前个人版不在首次引导自动下载任何模型：
+  // Step 1: 欢迎
+  // Step 2: 说明默认中文 Whisper 配置
+  // Step 3: 请求麦克风与系统声音权限
 
   return (
     <div className="onboarding-flow">
       {currentStep === 1 && <WelcomeStep />}
       {currentStep === 2 && <SetupOverviewStep />}
-      {currentStep === 3 && <DownloadProgressStep />}
-      {currentStep === 4 && isMac && <PermissionsStep />}
+      {(currentStep === 3 || currentStep === 4) && isMac && <PermissionsStep />}
     </div>
   );
 }

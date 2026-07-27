@@ -8,10 +8,12 @@ static ANALYTICS_CLIENT: std::sync::Mutex<Option<Arc<AnalyticsClient>>> = std::s
 
 #[command]
 pub async fn init_analytics() -> Result<(), String> {
+    // 个人版固定关闭遥测。保留命令是为了兼容现有前端调用，但不会创建
+    // PostHog 客户端，也不会发送任何统计请求。
     let config = AnalyticsConfig {
-        api_key: "phc_Aa9PqeCkDkVbtbRsYjtmHANBfcscjCVupxZwrtL5vZ77".to_string(),
-        host: Some("https://us.i.posthog.com".to_string()),
-        enabled: true,
+        api_key: String::new(),
+        host: None,
+        enabled: false,
     };
     
     let client = Arc::new(AnalyticsClient::new(config).await);

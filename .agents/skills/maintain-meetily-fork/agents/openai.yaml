@@ -1,0 +1,4 @@
+interface:
+  display_name: "会议录音 Fork 维护"
+  short_description: "规范同步 Meetily 上游、开发分支、合规与验证流程"
+  default_prompt: "使用 $maintain-meetily-fork 安全规划并实现本项目的下一项改动。"

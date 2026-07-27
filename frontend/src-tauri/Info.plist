@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>NSMicrophoneUsageDescription</key>
-    <string>This application needs access to your microphone to record meeting audio.</string>
+    <string>“会议录音”需要访问麦克风，用于录制你在会议中的声音。</string>
     <key>NSScreenCaptureUsageDescription</key>
-    <string>This application needs screen recording permission to capture system audio during meetings.</string>
+    <string>“会议录音”需要屏幕与系统音频录制权限，用于录制会议中的系统声音。</string>
     <key>NSAudioCaptureUsageDescription</key>
-    <string>This application needs permission to capture system audio output for meeting transcription and recording.</string>
+    <string>“会议录音”需要访问系统音频，用于录音和本地转写。</string>
     <key>com.apple.security.device.audio-input</key>
     <true/>
 </dict>

@@ -1,3 +1,23 @@
+<div align="center">
+  <img src="frontend/branding/app-icon-v2.png" width="128" alt="会议录音图标" />
+  <h1>会议录音</h1>
+  <p>面向个人 Mac 的本地优先会议录音与转写应用。</p>
+</div>
+
+> 当前个人版：`v0.1.0`，基于 Meetily Community `v0.4.0`
+>（提交 `0281737d87d26352fb0adc78c8c0975f691b23d1`）。本项目与 Meetily 官方
+> 产品相互独立，不包含 Meetily Pro 闭源代码或商业资产。
+
+- [更新记录](CHANGELOG.md)
+- [版本与发布](docs/RELEASE.md)
+- [上游同步](docs/UPSTREAM.md)
+- [许可证与独立开发边界](docs/LEGAL.md)
+- [分阶段验收](docs/ACCEPTANCE.md)
+
+以下保留上游项目介绍和原始文档：
+
+---
+
 <div align="center" style="border-bottom: none">
     <h1>
         <img src="docs/Meetily-6.png" style="border-radius: 10px;" />
