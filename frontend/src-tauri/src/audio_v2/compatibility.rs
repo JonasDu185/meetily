@@ -43,7 +43,7 @@ impl LegacyBridge {
     pub async fn initialize(&mut self) -> Result<()> {
         match self.mode {
             AudioMode::Legacy => {
-                self.legacy_saver = Some(RecordingSaver::new());
+                self.legacy_saver = Some(RecordingSaver::default());
                 log::info!("Initialized legacy audio system");
             }
             AudioMode::Modern => {
@@ -54,7 +54,7 @@ impl LegacyBridge {
                 log::info!("Initialized modern audio system");
             }
             AudioMode::Hybrid => {
-                self.legacy_saver = Some(RecordingSaver::new());
+                self.legacy_saver = Some(RecordingSaver::default());
                 self.modern_system = Some(ModernAudioSystem::new());
                 if let Some(ref mut system) = self.modern_system {
                     system.initialize().await?;

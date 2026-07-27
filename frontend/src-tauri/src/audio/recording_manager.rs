@@ -35,8 +35,11 @@ pub struct RecordingManager {
 unsafe impl Send for RecordingManager {}
 
 impl RecordingManager {
-    /// Create a new recording manager
-    pub fn new() -> Self {
+    /// 创建新的录音管理器
+    ///
+    /// # 参数
+    /// * `save_folder` - 用户自定义的录音保存目录
+    pub fn new(save_folder: std::path::PathBuf) -> Self {
         let state = RecordingState::new();
         let stream_manager = AudioStreamManager::new(state.clone());
         let pipeline_manager = AudioPipelineManager::new();
@@ -46,7 +49,7 @@ impl RecordingManager {
             state,
             stream_manager,
             pipeline_manager,
-            recording_saver: RecordingSaver::new(),
+            recording_saver: RecordingSaver::new(save_folder),
             device_monitor: Some(device_monitor),
             device_event_receiver: Some(device_event_receiver),
         }
@@ -603,7 +606,8 @@ impl RecordingManager {
 
 impl Default for RecordingManager {
     fn default() -> Self {
-        Self::new()
+        // 默认使用系统默认录音目录
+        Self::new(super::recording_preferences::get_default_recordings_folder())
     }
 }
 

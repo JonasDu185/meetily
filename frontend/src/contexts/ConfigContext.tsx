@@ -90,6 +90,7 @@ interface ConfigContextType {
   storageLocations: StorageLocations | null;
   isLoadingPreferences: boolean;
   loadPreferences: () => Promise<void>;
+  refreshPreferences: () => Promise<void>;
   updateNotificationSettings: (settings: NotificationSettings) => Promise<void>;
 }
 
@@ -437,16 +438,17 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       }
 
       // Load storage locations
-      const [dbDir, modelsDir, recordingsDir] = await Promise.all([
+      // 录音路径从用户偏好设置中获取（可能是自定义路径）
+      const [dbDir, modelsDir, recordingPrefs] = await Promise.all([
         invoke<string>('get_database_directory'),
         invoke<string>('whisper_get_models_directory'),
-        invoke<string>('get_default_recordings_folder_path')
+        invoke<{save_folder: string}>('get_recording_preferences')
       ]);
 
       setStorageLocations({
         database: dbDir,
         models: modelsDir,
-        recordings: recordingsDir
+        recordings: recordingPrefs.save_folder
       });
 
       // Mark as loaded
@@ -458,6 +460,12 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       setIsLoadingPreferences(false);
     }
   }, []);
+
+  // 强制刷新偏好设置（绕过缓存，供存储位置变更后调用）
+  const refreshPreferences = useCallback(async () => {
+    preferencesLoadedRef.current = false;
+    await loadPreferences();
+  }, [loadPreferences]);
 
   // Update notification settings
   const updateNotificationSettings = useCallback(async (settings: NotificationSettings) => {
@@ -506,6 +514,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     storageLocations,
     isLoadingPreferences,
     loadPreferences,
+    refreshPreferences,
     updateNotificationSettings,
   }), [
     modelConfig,
@@ -528,6 +537,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     storageLocations,
     isLoadingPreferences,
     loadPreferences,
+    refreshPreferences,
     updateNotificationSettings,
   ]);
 

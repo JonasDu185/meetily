@@ -46,8 +46,10 @@ pub struct DeviceInfo {
     pub system_audio: Option<String>,
 }
 
-/// New recording saver using incremental saving strategy
+/// 新版录音保存器，采用增量保存策略
 pub struct RecordingSaver {
+    /// 用户自定义的录音保存目录，优先于系统默认值
+    save_folder: PathBuf,
     incremental_saver: Option<Arc<AsyncMutex<IncrementalAudioSaver>>>,
     meeting_folder: Option<PathBuf>,
     meeting_name: Option<String>,
@@ -58,8 +60,13 @@ pub struct RecordingSaver {
 }
 
 impl RecordingSaver {
-    pub fn new() -> Self {
+    /// 创建录音保存器
+    ///
+    /// # 参数
+    /// * `save_folder` - 用户自定义的录音保存目录
+    pub fn new(save_folder: PathBuf) -> Self {
         Self {
+            save_folder,
             incremental_saver: None,
             meeting_folder: None,
             meeting_name: None,
@@ -228,8 +235,8 @@ impl RecordingSaver {
     /// * `meeting_name` - Name of the meeting
     /// * `create_checkpoints` - Whether to create .checkpoints/ directory and IncrementalAudioSaver
     fn initialize_meeting_folder(&mut self, meeting_name: &str, create_checkpoints: bool) -> Result<()> {
-        // Load preferences to get base recordings folder
-        let base_folder = super::recording_preferences::get_default_recordings_folder();
+        // 使用用户自定义的保存目录，而非系统默认值
+        let base_folder = &self.save_folder;
 
         // Create meeting folder structure (with or without .checkpoints/ subdirectory)
         let meeting_folder = create_meeting_folder(&base_folder, meeting_name, create_checkpoints)?;
@@ -480,6 +487,7 @@ impl RecordingSaver {
 
 impl Default for RecordingSaver {
     fn default() -> Self {
-        Self::new()
+        // 默认使用系统默认录音目录
+        Self::new(super::recording_preferences::get_default_recordings_folder())
     }
 }

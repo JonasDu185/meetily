@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useRef } from "react"
 import { Switch } from "./ui/switch"
-import { FolderOpen } from "lucide-react"
+import { FolderOpen, FolderSearch, RotateCcw } from "lucide-react"
 import { invoke } from "@tauri-apps/api/core"
+import { toast } from "sonner"
 import Analytics from "@/lib/analytics"
 import AnalyticsConsentSwitch from "./AnalyticsConsentSwitch"
 import { useConfig, NotificationSettings } from "@/contexts/ConfigContext"
@@ -14,6 +15,7 @@ export function PreferenceSettings() {
     storageLocations,
     isLoadingPreferences,
     loadPreferences,
+    refreshPreferences,
     updateNotificationSettings
   } = useConfig();
 
@@ -110,6 +112,41 @@ export function PreferenceSettings() {
     handleUpdateNotificationSettings();
   }, [notificationsEnabled, notificationSettings, isInitialLoad, previousNotificationsEnabled, updateNotificationSettings])
 
+  // 更改录音存储位置 — 调用 macOS 原生文件夹选择窗口
+  const handleChangeFolder = async () => {
+    try {
+      const selectedPath = await invoke<string | null>('select_recording_folder');
+      if (selectedPath) {
+        // 获取当前偏好设置，更新 save_folder
+        const prefs = await invoke<{save_folder: string; auto_save: boolean; file_format: string}>('get_recording_preferences');
+        await invoke('set_recording_preferences', {
+          preferences: { ...prefs, save_folder: selectedPath }
+        });
+        // 强制刷新显示的路径（绕过缓存）
+        await refreshPreferences();
+        toast.success('录音存储位置已更新');
+        await Analytics.track('recording_folder_changed');
+      }
+    } catch (error) {
+      console.error('更改存储位置失败:', error);
+      toast.error('更改存储位置失败');
+    }
+  };
+
+  // 恢复录音存储位置到系统默认值
+  const handleResetFolder = async () => {
+    try {
+      await invoke<string>('reset_recording_folder');
+      // 强制刷新显示的路径（绕过缓存）
+      await refreshPreferences();
+      toast.success('已恢复默认存储位置');
+      await Analytics.track('recording_folder_reset');
+    } catch (error) {
+      console.error('恢复默认存储位置失败:', error);
+      toast.error('恢复默认存储位置失败');
+    }
+  };
+
   const handleOpenFolder = async (folderType: 'database' | 'models' | 'recordings') => {
     try {
       switch (folderType) {
@@ -203,13 +240,22 @@ export function PreferenceSettings() {
             <div className="text-sm text-gray-600 mb-3 break-all font-mono text-xs">
               {storageLocations?.recordings || 'Loading...'}
             </div>
-            <button
-              onClick={() => handleOpenFolder('recordings')}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
-            >
-              <FolderOpen className="w-4 h-4" />
-              Open Folder
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleChangeFolder}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-blue-300 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors"
+              >
+                <FolderSearch className="w-4 h-4" />
+                Change Location
+              </button>
+              <button
+                onClick={handleResetFolder}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 text-gray-600 transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reset to Default
+              </button>
+            </div>
           </div>
         </div>
 

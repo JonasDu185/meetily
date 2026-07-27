@@ -245,13 +245,47 @@ pub async fn open_recordings_folder<R: Runtime>(app: AppHandle<R>) -> Result<(),
 
 #[tauri::command]
 pub async fn select_recording_folder<R: Runtime>(
-    _app: AppHandle<R>,
+    app: AppHandle<R>,
 ) -> Result<Option<String>, String> {
-    // Use Tauri's dialog to select folder
-    // For now, return None - this would need to be implemented with tauri-plugin-dialog
-    // when it's available in the Cargo.toml
-    warn!("Folder selection not yet implemented - using dialog plugin");
-    Ok(None)
+    use tauri_plugin_dialog::DialogExt;
+
+    // 获取当前已保存的录音目录作为对话框的起始位置
+    let preferences = load_recording_preferences(&app)
+        .await
+        .unwrap_or_default();
+    let default_path = preferences.save_folder;
+
+    let app_clone = app.clone();
+    let selected_path = tokio::task::spawn_blocking(move || {
+        let mut dialog = app_clone.dialog().file();
+
+        // 设置默认起始目录
+        if default_path.exists() {
+            dialog = dialog.set_directory(&default_path);
+        }
+
+        dialog.blocking_pick_folder()
+    })
+    .await
+    .map_err(|e| format!("文件夹选择对话框执行失败: {}", e))?;
+
+    Ok(selected_path.map(|p| p.to_string()))
+}
+
+/// 重置录音目录到系统默认值
+#[tauri::command]
+pub async fn reset_recording_folder<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<String, String> {
+    let default_folder = get_default_recordings_folder();
+    let mut preferences = load_recording_preferences(&app)
+        .await
+        .unwrap_or_default();
+    preferences.save_folder = default_folder.clone();
+    save_recording_preferences(&app, &preferences)
+        .await
+        .map_err(|e| format!("保存偏好设置失败: {}", e))?;
+    Ok(default_folder.to_string_lossy().to_string())
 }
 
 // Backend selection commands

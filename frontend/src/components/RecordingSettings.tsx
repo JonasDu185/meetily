@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { FolderOpen } from 'lucide-react';
+import { FolderOpen, FolderSearch, RotateCcw } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { DeviceSelection, SelectedDevices } from '@/components/DeviceSelection';
 import Analytics from '@/lib/analytics';
@@ -104,6 +104,47 @@ export function RecordingSettings({ onSave }: RecordingSettingsProps) {
     }
   };
 
+  // 更改录音存储位置 — 调用 macOS 原生文件夹选择窗口
+  const handleChangeFolder = async () => {
+    try {
+      const selectedPath = await invoke<string | null>('select_recording_folder');
+      if (!selectedPath) return; // 用户取消选择
+      const newPreferences = { ...preferences, save_folder: selectedPath };
+      // 直接保存，根据结果决定提示
+      try {
+        await invoke('set_recording_preferences', { preferences: newPreferences });
+        setPreferences(newPreferences);
+        toast.success('录音存储位置已更新');
+      } catch (saveError) {
+        console.error('保存存储位置失败:', saveError);
+        toast.error('保存存储位置失败，请重试');
+      }
+    } catch (error) {
+      console.error('更改存储位置失败:', error);
+      toast.error('更改存储位置失败');
+    }
+  };
+
+  // 恢复录音存储位置到系统默认值
+  const handleResetFolder = async () => {
+    try {
+      const defaultPath = await invoke<string>('reset_recording_folder');
+      const newPreferences = { ...preferences, save_folder: defaultPath };
+      // 直接保存，根据结果决定提示
+      try {
+        await invoke('set_recording_preferences', { preferences: newPreferences });
+        setPreferences(newPreferences);
+        toast.success('已恢复默认存储位置');
+      } catch (saveError) {
+        console.error('保存默认存储位置失败:', saveError);
+        toast.error('保存默认存储位置失败，请重试');
+      }
+    } catch (error) {
+      console.error('恢复默认存储位置失败:', error);
+      toast.error('恢复默认存储位置失败');
+    }
+  };
+
   const handleNotificationToggle = async (enabled: boolean) => {
     try {
       setShowRecordingNotification(enabled);
@@ -184,13 +225,22 @@ export function RecordingSettings({ onSave }: RecordingSettingsProps) {
             <div className="text-sm text-gray-600 mb-3 break-all">
               {preferences.save_folder || 'Default folder'}
             </div>
-            <button
-              onClick={handleOpenFolder}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              <FolderOpen className="w-4 h-4" />
-              Open Folder
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleChangeFolder}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-blue-300 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors"
+              >
+                <FolderSearch className="w-4 h-4" />
+                Change Location
+              </button>
+              <button
+                onClick={handleResetFolder}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 text-gray-600 transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reset to Default
+              </button>
+            </div>
           </div>
 
           <div className="p-4 border rounded-lg bg-blue-50">
