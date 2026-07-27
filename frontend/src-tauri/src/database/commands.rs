@@ -204,11 +204,11 @@ pub async fn initialize_fresh_database(app: AppHandle) -> Result<(), String> {
         error!("Failed to set default summary model config: {}", e);
     }
 
-    // Default Transcription Model: Parakeet
+    // 中文会议默认使用多语言 Whisper 量化模型。
     if let Err(e) = crate::database::repositories::setting::SettingsRepository::save_transcript_config(
         pool,
-        "parakeet",
-        crate::config::DEFAULT_PARAKEET_MODEL,
+        "localWhisper",
+        crate::config::DEFAULT_WHISPER_MODEL,
     ).await {
         error!("Failed to set default transcription model config: {}", e);
     }
