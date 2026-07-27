@@ -4,7 +4,7 @@
   <p>面向个人 Mac 的本地优先会议录音与转写应用。</p>
 </div>
 
-> 当前个人版：`v0.1.0` 本地候选版，基于 Meetily Community `v0.4.0`
+> 当前个人版：`v0.1.0`，基于 Meetily Community `v0.4.0`
 >（提交 `0281737d87d26352fb0adc78c8c0975f691b23d1`）。本项目与 Meetily 官方
 > 产品相互独立，不包含 Meetily Pro 闭源代码或商业资产。
 
